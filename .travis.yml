@@ -11,5 +11,5 @@ script:
 deploy:
   provider: surge
   project: ./build/
-  domain: recipe-box-rl.surge.sh
+  domain: game-of-life-rl.surge.sh
   skip_cleanup: true
