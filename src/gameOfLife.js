@@ -1,21 +1,29 @@
+import conwayArray from "./conway.js";
 class GameOfLife {
   // let gameBoard = [][];
 
   constructor(boardSize) {
     this.boardSize = boardSize;
-
+    this.gameBoard = new Array(boardSize * boardSize);
+    this.conway = conwayArray;
+  }
+  initializeGame(boardSize, randomize) {
+    this.boardSize = boardSize;
     this.gameBoard = new Array(boardSize * boardSize);
 
-    this.cell = {
-      x: undefined,
-      y: undefined
-    };
-  }
-  initializeGame() {
     let index = 0;
     for (let i = 0; i < this.boardSize; i++) {
       for (let j = 0; j < this.boardSize; j++) {
-        let randomLife = Math.random() * 100 > 90 ? true : false;
+        //make 10% of cells randomly alive
+        let randomLife = false;
+        if (randomize) {
+          randomLife = Math.random() * 100 > 90 ? true : false;
+        } else {
+          //first board initialization with welcome message
+          if (this.conway.includes(index)) {
+            randomLife = true;
+          }
+        }
         let newCell = { row: i, col: j, alive: randomLife, index: index };
 
         newCell.neighbors = this.calculateNeighbors(newCell);
@@ -29,7 +37,6 @@ class GameOfLife {
   }
 
   calculateNeighbors(cell) {
-    // debugger;
     let neighbors = [];
     let neighborIDs = [];
 
@@ -49,6 +56,7 @@ class GameOfLife {
     neighbors.push(nNW, nN, nNE, nE, nSE, nS, nSW, nW);
 
     if (cell.row > 0 && cell.row < this.boardSize - 1 && cell.col > 0 && cell.col < this.boardSize - 1) {
+      // get the index of each neighbor and add it to id array
       neighborIDs = neighbors.map(loc => {
         return this.boardSize * loc[0] + loc[1];
       });
@@ -64,9 +72,12 @@ class GameOfLife {
 
       loc[0] = loc[0] === -1 ? this.boardSize - 1 : loc[0];
       loc[1] = loc[1] === -1 ? this.boardSize - 1 : loc[1];
+      return 0;
     });
 
     neighborIDs = neighbors.map(loc => {
+      // get the index of each neighbor and add it to id array
+
       return this.boardSize * loc[0] + loc[1];
     });
 
@@ -74,23 +85,31 @@ class GameOfLife {
   }
 
   createNewGeneration(oldGeneration) {
+    //create copy of oldGeneration to update
     let newGeneration = oldGeneration.slice();
+
     newGeneration = oldGeneration.map(cell => {
       let livingNeighbors = 0;
+      //count the living neighbors for each cell
       cell.neighbors.map(neighbor => {
         livingNeighbors += oldGeneration[neighbor].alive ? 1 : 0;
+        return 0;
       });
-      
-      if (cell.alive && (livingNeighbors === 2 || livingNeighbors === 3)) {
+
+      //check living neighbors against Game Of Life Rules
+      //this is most common state, so check for it first and return it right away
+      if (!cell.alive && livingNeighbors !== 3) {
+        return cell;
+      } else if (cell.alive && (livingNeighbors === 2 || livingNeighbors === 3)) {
         return cell;
       } else if (!cell.alive && livingNeighbors === 3) {
-        let newCell = {...cell}
-        newCell.alive = true
+        let newCell = { ...cell };
+        newCell.alive = true;
         return newCell;
       } else if (cell.alive && (livingNeighbors < 2 || livingNeighbors > 3)) {
-        let newCell = {...cell}
-        newCell.alive = false
-        return newCell;;
+        let newCell = { ...cell };
+        newCell.alive = false;
+        return newCell;
       } else {
         return cell;
       }
@@ -99,14 +118,17 @@ class GameOfLife {
     return newGeneration;
   }
 
-  clearBoard(board){
-    return board.map(cell => {
-      cell.alive = false
+  clearBoard(board) {
+    let newBoard = new Array(board.length);
+    newBoard = board.map(cell => {
+      cell.alive = false;
+      return cell;
     });
+
+    return newBoard;
   }
 }
 export default GameOfLife;
-
 
 // NO WRAP
 // loc[0] = loc[0] === this.boardSize ? -10 : loc[0];
